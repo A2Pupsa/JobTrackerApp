@@ -4,6 +4,10 @@
 *.js linguist-detectable=false
 *.html linguist-detectable=false  
 *.xml linguist-detectable=false 
+*.tex linguist-detectable=false
+*.sty linguist-detectable=false
+*.cls linguist-detectable=false
 
-
-tex/* linguist-vendored
+venv/* linguist-detectable=false
+build/* linguist-detectable=false
+dist/* linguist-detectable=false
