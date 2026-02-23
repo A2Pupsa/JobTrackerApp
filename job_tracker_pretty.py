@@ -53,14 +53,12 @@ def init_db():
             status  TEXT DEFAULT 'Applied'
         )
     """)
-    # Add status column if old DB
     cur.execute("PRAGMA table_info(applications)")
     cols = [r[1] for r in cur.fetchall()]
     if "status" not in cols:
         cur.execute("ALTER TABLE applications ADD COLUMN status TEXT DEFAULT 'Applied'")
         cur.execute("UPDATE applications SET status = 'Applied' WHERE status IS NULL")
 
-    # Status history table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS status_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,7 +78,7 @@ def insert(company, title, date_applied, link, status):
         (company, title, date_applied, link or None, status)
     )
     new_id = cur.lastrowid
-    _log_status_cur(cur, new_id, status)  # log initial status
+    _log_status_cur(cur, new_id, status)
     con.commit(); con.close()
     return new_id
 
@@ -95,7 +93,6 @@ def update_status(ids, status):
     now = datetime.now().isoformat(timespec="seconds")
     con = sqlite3.connect(DB_PATH); cur = con.cursor()
     cur.executemany("UPDATE applications SET status = ? WHERE id = ?", [(status, i) for i in ids])
-    # log history
     cur.executemany(
         "INSERT INTO status_log (app_id, status, created_at) VALUES (?, ?, ?)",
         [(i, status, now) for i in ids]
@@ -148,7 +145,6 @@ def fetch_history(app_id):
     con.close()
     return rows
 
-# ---------- UI helpers ----------
 def configure_style(dark: bool):
     global colors
     style = ttk.Style()
@@ -182,7 +178,6 @@ def configure_style(dark: bool):
     style.map("Danger.TButton", background=[("active", danger)])
     style.configure("Ghost.TButton", background=bg, foreground=fg, borderwidth=0)
 
-    # Treeview fonts
     tv_font = tkfont.Font(root, family="Segoe UI", size=10)
     tv_head_font = tkfont.Font(root, family="Segoe UI", size=10, weight="bold")
 
@@ -462,7 +457,6 @@ PAD_INPUT = (0, 8)
 card = ttk.Frame(root, style="Card.TFrame", padding=16)
 card.grid(row=1, column=0, sticky="ew", padx=16)
 
-# 5 equal columns
 for i in range(5):
     card.columnconfigure(i, weight=1)
 
@@ -473,7 +467,7 @@ ttk.Label(card, text="Date (YYYY-MM-DD)").grid(row=0, column=2, sticky="w", padx
 ttk.Label(card, text="Link").grid(row=0, column=3, sticky="w", padx=(0, PAD_BETWEEN), pady=PAD_TOPLBL)
 ttk.Label(card, text="Status").grid(row=0, column=4, sticky="w", padx=(0, 0), pady=PAD_TOPLBL)
 
-# Inputs (consistent right padding between each field)
+# Inputs
 ttk.Entry(card, textvariable=company_var).grid(row=1, column=0, sticky="ew", padx=(0, PAD_BETWEEN), pady=PAD_INPUT)
 ttk.Entry(card, textvariable=title_var).grid(row=1, column=1, sticky="ew", padx=(0, PAD_BETWEEN), pady=PAD_INPUT)
 ttk.Entry(card, textvariable=date_var).grid(row=1, column=2, sticky="ew", padx=(0, PAD_BETWEEN), pady=PAD_INPUT)
